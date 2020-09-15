@@ -1,9 +1,22 @@
+// Dependancies
 const express = require("express");
-const app = express()
+const app = express();
+const morgan = require("morgan");
+const bodyParser = require("body-parser");
 
-app.get('/' , (req, res) => {
-  console.log('res');
-})
+// Config
+const { config } = require("./config");
 
+// Utils
+require("./utils/db")();
+require("./utils/routes")(app);
 
-app.listen(5000, () => console.log("server started"))
+// Middlewares
+app.use(morgan("dev"));
+app.use(bodyParser.json());
+
+app.get("/", (req, res) => {
+	console.log("res");
+});
+
+app.listen(config.PORT, () => console.log(`server started on ${config.PORT}`));
