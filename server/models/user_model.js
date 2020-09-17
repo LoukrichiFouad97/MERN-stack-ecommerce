@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
 	{
@@ -12,6 +13,26 @@ const userSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
+
+userSchema.pre("save", async function (next) {
+	const salt = await bcrypt.genSalt();
+	this.password = await bcrypt.hash(this.password, salt);
+	next();
+});
+
+userSchema.statics.signIn = async function (email, password) {
+	try {
+		const user = await this.findOne({ email });
+		if (!user) throw Error("User is not registered");
+
+		const validatePassword = await bcrypt.compare(password, user.password);
+		if (!validatePassword) throw Error("Wrong password");
+
+		return user;
+	} catch (error) {
+		throw Error(error);
+	}
+};
 
 const User = mongoose.model("User", userSchema);
 

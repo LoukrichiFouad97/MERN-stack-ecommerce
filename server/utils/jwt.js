@@ -1,8 +1,11 @@
 const jwt = require("jsonwebtoken");
 const { config } = require("../config");
 
-const getToken = ({ email, isAdmin }) => {
-	return jwt.sign({ email, isAdmin }, config.JWT_SECRET, { expiresIn: "48h" });
+const getToken = (_id) => {
+	const tokenAge = 3 * 24 * 60 * 60;
+	return jwt.sign({ _id }, config.JWT_SECRET, {
+		expiresIn: tokenAge,
+	});
 };
 
 module.exports = getToken;

@@ -1,6 +1,9 @@
 const router = require("express").Router();
-const { runValidation } = require("../validators/index");
-const { userSignUpValidator } = require("../validators/user_validator");
+const {
+	userSignUpValidator,
+	userSignInValidator,
+	validate,
+} = require("../validators/user_validator");
 
 // Controllers
 const {
@@ -8,15 +11,17 @@ const {
 	signIn,
 	getAllUsers,
 	updateUser,
-	getSingalUser,
+	getUserById,
 	deleteUser,
+	signOut,
 } = require("../controllers/user_controller");
 
-router.post("/signup", userSignUpValidator, runValidation, signUp);
-router.post("/signin", signIn);
+router.post("/signup", userSignUpValidator(), validate, signUp);
+router.post("/signin", userSignInValidator(), validate, signIn);
+router.get("/signout", signOut);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
-router.get("/:id", getSingalUser);
+router.get("/:id", getUserById);
 router.get("/", getAllUsers);
 
 module.exports = router;

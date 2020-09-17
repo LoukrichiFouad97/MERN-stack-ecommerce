@@ -1,36 +1,43 @@
 const { User } = require("../models/user_model");
 const getToken = require("../utils/jwt");
-const _ = require("lodash");
-const bcrypt = require("bcrypt");
 
+// @desc registers new user
+// @route /api/users/signup
 exports.signUp = async (req, res) => {
-	let user = await User.findOne({ email: req.body.email });
-	if (user) return res.status(401).json({ msg: "User is already registered" });
-
 	const { name, email, password } = req.body;
+
 	try {
-		user = new User({ name, email, password });
-
-		const salt = await bcrypt.genSalt(10);
-		user.password = await bcrypt.hash(user.password, salt);
-
+		const user = new User({ name, email, password });
 		await user.save();
-		res.json({ user });
+		const token = getToken(user._id);
+
+		res.cookie("user", token, { expire: 1000 * 60 * 60 * 24 * 3 });
+		res.json({ user, token });
 	} catch (error) {
 		res.status(401).json({ err: error.message });
 	}
 };
 
+// @desc Logs in already registered users
+// @route /api/users/signin
 exports.signIn = async (req, res) => {
 	try {
-		const user = await User.findOne({ email: req.body.email });
-		if (!user) return res.status(401).json({ msg: "User is not registered" });
-
+		const user = await User.signIn(req.body.email, req.body.password);
 		const { _id, name, email } = user;
-		res.send({ _id, name, email, token: getToken(user) });
+		const token = getToken(user._id);
+
+		res.cookie("user", token, { expire: 1000 * 60 * 60 * 24 * 3 });
+		res.send({ _id, name, email, token });
 	} catch (error) {
 		res.status(400).json({ msg: error.message });
 	}
+};
+
+// @desc Logs out user
+// @route /api/users/signout
+exports.signOut = (req, res) => {
+	res.clearCookie("user");
+	res.send("user signed out successfully");
 };
 
 exports.updateUser = async (req, res) => {
@@ -66,7 +73,7 @@ exports.getAllUsers = async (req, res) => {
 	}
 };
 
-exports.getSingalUser = async (req, res) => {
+exports.getUserById = async (req, res) => {
 	try {
 		const user = await User.findOne({ _id: req.params.id });
 		if (!user) return res.status(404).json({ msg: "user is not found" });
