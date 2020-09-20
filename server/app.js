@@ -5,6 +5,8 @@ import morgan from "morgan";
 import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import compress from "compression";
 
 const app = express();
 dotenv.config();
@@ -16,7 +18,10 @@ import { isAuth } from "./utils/isAuth";
 // Middlewares
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+app.use(helmet());
+app.use(compress());
 
 // Utils
 require("./utils/db")();
@@ -37,4 +42,9 @@ app.get("/", isAuth, (req, res) => {
 	console.log("cookies", res.cookies);
 });
 
-app.listen(config.PORT, () => console.log(`server started on ${config.PORT}`));
+app.listen(config.PORT, (err) => {
+	if (err) {
+		console.log(err);
+	}
+	console.log(`server started on ${config.PORT}`);
+});

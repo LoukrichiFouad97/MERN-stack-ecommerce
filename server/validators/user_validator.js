@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator");
-const { User } = require("../models/user_model");
+const { User } = require("../models/user.model");
 
 const userSignUpValidator = () => {
 	return [

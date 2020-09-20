@@ -1,15 +1,25 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { config } from "../config/";
+import { config } from "../config";
 
 const userSchema = new mongoose.Schema(
 	{
-		name: { type: String, required: true, trim: true, maxlength: 32 },
-		email: { type: String, required: true, unique: true },
-		password: { type: String, required: true },
+		name: {
+			type: String,
+			required: [true, "name can't be empty"],
+			trim: true,
+			maxlength: 32,
+		},
+		email: {
+			type: String,
+			trim: "true",
+			required: [true, "email is required"],
+			unique: [true, "email already exists"],
+			match: [/.+\@.+\..+/, "Please fill a valid email address"],
+		},
+		password: { type: String, required: true, select: false },
 		role: { type: Number, default: 0 },
-		salt: String,
 		about: String,
 		history: { type: Array, default: [] },
 	},
@@ -30,10 +40,10 @@ userSchema.methods.getToken = function () {
 	});
 };
 
-// check if user has an account 
+// check if user has an account
 userSchema.statics.signIn = async function (email, password) {
 	try {
-		const user = await this.findOne({ email });
+		const user = await this.findOne({ email }).select("+password");
 		if (!user) throw Error("User is not registered");
 
 		const validatePassword = await bcrypt.compare(password, user.password);

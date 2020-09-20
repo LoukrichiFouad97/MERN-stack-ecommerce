@@ -10,6 +10,6 @@ module.exports = () => {
 		});
 		console.log("db connected");
 	} catch (error) {
-		console.log(error);
+		throw new Error(`unable to connect to database ${config.MONGODB_URL}`);
 	}
 };
