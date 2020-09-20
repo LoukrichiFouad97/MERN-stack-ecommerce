@@ -1,18 +1,15 @@
-const { User } = require("../models/user_model");
-const getToken = require("../utils/jwt");
+import { User } from "../models/user_model";
 
 // @desc register new user
 // @route POST /api/users/signup
-exports.signUp = async (req, res) => {
+export const signUp = async (req, res) => {
 	const { name, email, password } = req.body;
 
 	try {
 		const user = new User({ name, email, password });
 		await user.save();
-		const token = getToken(user._id);
-
+		const token = user.getToken();
 		res.cookie("user", token, { expire: 1000 * 60 * 60 * 24 * 3 });
-		// res.header("x-auth-token", token).json({ user, token });
 		res.json({ user, token });
 	} catch (error) {
 		res.status(401).json({ err: error.message });
@@ -21,14 +18,12 @@ exports.signUp = async (req, res) => {
 
 // @desc Log in already registered users
 // @route POST /api/users/signin
-exports.signIn = async (req, res) => {
+export const signIn = async (req, res) => {
 	try {
 		const user = await User.signIn(req.body.email, req.body.password);
 		const { _id, name, email } = user;
-		const token = getToken(user._id);
-
+		const token = user.getToken();
 		res.cookie("user", token, { expire: 1000 * 60 * 60 * 24 * 3 });
-		// res.header("x-auth-token", token).json({ _id, name, email, token });
 		res.json({ _id, name, email, token });
 	} catch (error) {
 		res.status(400).json({ msg: error.message });
@@ -37,14 +32,14 @@ exports.signIn = async (req, res) => {
 
 // @desc Log out user
 // @route GET /api/users/signout
-exports.signOut = (req, res) => {
+export const signOut = (req, res) => {
 	res.clearCookie("user");
 	res.send("user signed out successfully");
 };
 
 // @desc Update user profile
 // @route PUT /api/users/:id
-exports.updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
 	try {
 		const user = await User.findByIdAndUpdate(
 			{ _id: req.params.id },
@@ -60,7 +55,7 @@ exports.updateUser = async (req, res) => {
 
 // @desc Delete user profile
 // @route DELETE /api/users/:id
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
 	try {
 		const user = await User.findByIdAndDelete({ _id: req.params.id });
 		if (!user) return res.status(404).json({ msg: "user is not registered" });
@@ -72,7 +67,7 @@ exports.deleteUser = async (req, res) => {
 
 // @desc Get all user profiles
 // @route GET /api/users/
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
 	try {
 		const users = await User.find();
 		res.status(200).send(users);
@@ -83,9 +78,9 @@ exports.getAllUsers = async (req, res) => {
 
 // @desc Get user profile by id
 // @route GET /api/users/:id
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
 	try {
-		const user = await User.findOne({ _id: req.params.id });
+		const user = await User.findById(req.params.id);
 		if (!user) return res.status(404).json({ msg: "user is not found" });
 		res.json({ user });
 	} catch (error) {

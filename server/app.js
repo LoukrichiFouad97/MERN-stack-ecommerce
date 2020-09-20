@@ -1,15 +1,17 @@
 // Dependancies
-const express = require("express");
+import express from "express";
+import cookieParser from "cookie-parser";
+import morgan from "morgan";
+import bodyParser from "body-parser";
+import cors from "cors";
+import dotenv from "dotenv";
+
 const app = express();
-const cookieParser = require("cookie-parser");
-const morgan = require("morgan");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-require("dotenv").config();
+dotenv.config();
 
 // Config
-const { config } = require("./config");
-const { isAuth } = require("./utils/isAuth");
+import { config } from "./config";
+import { isAuth } from "./utils/isAuth";
 
 // Middlewares
 app.use(cookieParser());

@@ -14,7 +14,7 @@ const {
 	getUserById,
 	deleteUser,
 	signOut,
-} = require("../controllers/user_controller");
+} = require("../controllers/auth");
 
 router.post("/signup", userSignUpValidator(), validate, signUp);
 router.post("/signin", userSignInValidator(), validate, signIn);

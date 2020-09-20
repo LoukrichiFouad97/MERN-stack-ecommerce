@@ -1,5 +1,7 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { config } from "../config/";
 
 const userSchema = new mongoose.Schema(
 	{
@@ -14,12 +16,21 @@ const userSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
+// encrypt password before save it into database
 userSchema.pre("save", async function (next) {
-	const salt = await bcrypt.genSalt();
+	const salt = await bcrypt.genSalt(10);
 	this.password = await bcrypt.hash(this.password, salt);
 	next();
 });
 
+// generate a json web token
+userSchema.methods.getToken = function () {
+	return jwt.sign({ id: this._id }, config.JWT_SECRET, {
+		expiresIn: config.JWT_EXPIRE,
+	});
+};
+
+// check if user has an account 
 userSchema.statics.signIn = async function (email, password) {
 	try {
 		const user = await this.findOne({ email });
@@ -34,6 +45,4 @@ userSchema.statics.signIn = async function (email, password) {
 	}
 };
 
-const User = mongoose.model("User", userSchema);
-
-exports.User = User;
+export const User = mongoose.model("User", userSchema);

@@ -38,12 +38,31 @@ A fully featured e-commerce web app, that supports paypal and google play paymen
 - winston
 - debug
 - bcrypt
-- express-jwt
+- @babel/core @babel/cli @babel/preset-env @babel/node
 
 ## Backend
 
-- user api
-  - /api/users/signup creates a new user
-  - /api/users/signin signs in users
+- user api CRUD
+  - Create user
+    - API Route: /api/users
+    - HTTP Method: POST
+  - List all users
+    - API Route: /api/users
+    - HTTP Method: GET
+  - Fetch user
+    - API Route: /api/users/:userid
+    - HTTP Method: GET
+  - Update user
+    - API Route: /api/users/:userid
+    - HTTP Method: PUT
+  - Delete user
+    - API Route: /api/users/:userid
+    - HTTP Method: DELETE
+  - User Sign-in
+    - API Route: /auth/signin
+    - HTTP Method: POST
+  - User Sign-out
+    - API Route: /auth/signout
+    - HTTP Method: GET
 
 ## Frontend
