@@ -1,60 +1,62 @@
+import _, { extend } from "lodash";
+
 import { User } from "../models/user.model";
 import { getErrorMessage } from "../helpers/dbErrorHandler";
-import { extend } from "lodash";
 
-export const signUp = async (req, res) => {
+export const create = async (req, res) => {
 	const user = new User(req.body);
+
 	try {
 		await user.save();
-		const token = user.getToken();
-		res.cookie("user", token, { expire: 1000 * 60 * 60 * 24 * 3 });
-		res.status(200).json({ msg: "Successfully signed up!", user, token });
+		res.json(_.pick(user, ["_id", "name", "email", "role"]));
 	} catch (err) {
 		res.status(400).json({ error: getErrorMessage(err) });
 	}
 };
 
-export const updateUser = async (req, res) => {
+export const read = async (req, res) => {
+	res.json({ user: _.pick(req.body, ["_id", "name", "email", "role"]) });
+};
+
+export const update = async (req, res) => {
 	try {
 		let user = req.profile;
 		user = extend(user, req.body);
 		await user.save();
-		res.json({ msg: "User update succefully", user });
+		res.json({ user: _.pick(req.body, ["_id", "name", "email", "role"]) });
 	} catch (err) {
 		res.status(400).json({ error: getErrorMessage(err) });
 	}
 };
 
-export const deleteUser = async (req, res) => {
+export const remove = async (req, res) => {
 	try {
 		let user = req.profile;
-		let deletedUser = await user.remove();
-		res.json({ msg: "user deleted succefully", user: deletedUser });
+		await user.remove();
+		res.json({
+			deletedUser: _.pick(req.body, ["_id", "name", "email", "role"]),
+		});
 	} catch (err) {
-		res.status(400).json({ error: getErrorMessage(err) });
+		return res.status(400).json({ error: getErrorMessage(err) });
 	}
-};
-
-export const listUsers = async (req, res) => {
-	try {
-		const users = await User.find().select("name email createdAt updatedAt");
-		res.json(users);
-	} catch (err) {
-		res.status(400).json({ error: getErrorMessage(err) });
-	}
-};
-
-export const readUser = async (req, res) => {
-	res.send(req.profile);
 };
 
 export const userById = async (req, res, next, id) => {
 	try {
 		const user = await User.findById(id);
-		if (!user) return res.status(400).json({ error: "User not found" });
+		if (!user) return res.status("400").json({ msg: "User not found" });
 		req.profile = user;
 		next();
-	} catch (err) {
-		res.status(400).json({ error: "Couldn't retrieve user  " });
+	} catch (error) {
+		return res.status("400").json({ error: "Could not retrieve user" });
+	}
+};
+
+export const list = async (req, res) => {
+	try {
+		const user = await User.find().select("_id name email role ");
+		res.json({ users: user });
+	} catch (error) {
+		res.status(401).json({ error: error.message });
 	}
 };

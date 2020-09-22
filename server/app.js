@@ -3,33 +3,39 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import bodyParser from "body-parser";
-import cors from "cors";
 import dotenv from "dotenv";
+import cors from "cors";
 import helmet from "helmet";
 import compress from "compression";
 
+import { config } from "./config";
+import { requireSignin, hasAuthorization } from "./controllers/auth.controller";
+
 const app = express();
 dotenv.config();
-
-// Config
-import { config } from "./config";
-import { isAuth } from "./utils/isAuth";
-
-// Middlewares
-app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
-app.use(helmet());
-app.use(compress());
 
 // Utils
 require("./utils/db")();
 require("./utils/routes")(app);
 
+// Middlewares
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(cors());
+app.use(helmet());
+app.use(compress());
+
+app.use((err, req, res, next) => {
+	if (err.name === "UnauthorizedError") {
+		res.status(401).json({ error: err.name + ": " + err.message });
+	} else if (err) {
+		res.status(400).json({ error: err.name + ": " + err.message });
+		console.log(err);
+	}
+});
+
 if (config.NODE_ENV === "development") {
 	app.use(morgan("dev"));
-	console.log("debug started in dev env");
 }
 
 if (!config.JWT_SECRET) {
@@ -37,9 +43,8 @@ if (!config.JWT_SECRET) {
 	process.exit(1);
 }
 
-app.get("/", isAuth, (req, res) => {
-	res.send("Hello in my app");
-	console.log("cookies", res.cookies);
+app.get("/", (req, res) => {
+	res.send("Hello from protected route");
 });
 
 app.listen(config.PORT, (err) => {

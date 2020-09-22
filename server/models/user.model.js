@@ -1,58 +1,69 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { config } from "../config";
+import uuidv1 from "uuidv1";
+import crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
 	{
 		name: {
 			type: String,
-			required: [true, "name can't be empty"],
+			required: [true, "name is required"],
 			trim: true,
 			maxlength: 32,
 		},
 		email: {
 			type: String,
-			trim: "true",
 			required: [true, "email is required"],
-			unique: [true, "email already exists"],
-			match: [/.+\@.+\..+/, "Please fill a valid email address"],
+			trim: true,
+			unique: true,
 		},
-		password: { type: String, required: true, select: false },
-		role: { type: Number, default: 0 },
-		about: String,
-		history: { type: Array, default: [] },
+		hashed_password: {
+			type: String,
+			required: [true, "password is required"],
+		},
+		salt: String,
+		role: {
+			type: Number,
+			default: 0,
+		},
+		about: {
+			type: String,
+			trim: true,
+		},
+		history: {
+			type: Array,
+			default: [],
+		},
 	},
 	{ timestamps: true }
 );
 
-// encrypt password before save it into database
-userSchema.pre("save", async function (next) {
-	const salt = await bcrypt.genSalt(10);
-	this.password = await bcrypt.hash(this.password, salt);
-	next();
-});
-
-// generate a json web token
-userSchema.methods.getToken = function () {
-	return jwt.sign({ id: this._id }, config.JWT_SECRET, {
-		expiresIn: config.JWT_EXPIRE,
+// encrypt password
+userSchema
+	.virtual("password")
+	.set(function (password) {
+		this._password = password;
+		this.salt = uuidv1();
+		this.hashed_password = this.encryptPassword(password);
+	})
+	.get(function () {
+		return this._password;
 	});
-};
 
-// check if user has an account
-userSchema.statics.signIn = async function (email, password) {
-	try {
-		const user = await this.findOne({ email }).select("+password");
-		if (!user) throw Error("User is not registered");
-
-		const validatePassword = await bcrypt.compare(password, user.password);
-		if (!validatePassword) throw Error("Wrong password");
-
-		return user;
-	} catch (error) {
-		throw Error(error);
-	}
+userSchema.methods = {
+	authenticate: function (password) {
+		return this.encryptPassword(password) === this.hashed_password;
+	},
+	encryptPassword: function (password) {
+		if (!password) return "";
+		try {
+			return crypto
+				.createHmac("sha1", this.salt)
+				.update(password)
+				.digest("hex");
+		} catch (error) {
+			return "";
+		}
+	},
 };
 
 export const User = mongoose.model("User", userSchema);

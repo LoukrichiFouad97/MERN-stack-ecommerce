@@ -1,29 +1,36 @@
 import express from "express";
-import { userSignUpValidator, validate } from "../validators/user_validator";
+import {
+	requireSignin,
+	hasAuthorization,
+} from "../controllers/auth.controller";
 
-const {
-	signUp,
-	listUsers,
-	updateUser,
-	readUser,
-	deleteUser,
+import {
+	create,
+	update,
+	read,
+	remove,
+	list,
 	userById,
-} = require("../controllers/user.controller");
+} from "../controllers/user.controller";
 
 const router = express.Router();
 
-// @desc list all users and creates a new user
-// @route /api/users
-// @access public
-router.route("/").get(listUsers).post(userSignUpValidator(), validate, signUp);
+// @desc 		list all users and creates a new user
+// @route 	/api/users
+// @access	public
+router.route("/").get(list).post(create);
 
-// @desc access, update and delete users
-// @route /api/users/:userId
-// @access protected
-router.route("/:userId").get(readUser).put(updateUser).delete(deleteUser);
+// @desc 		access, update and delete users
+// @route 	/api/users/:userId
+// @access	protected
+router
+	.route("/:userId")
+	.get(requireSignin, read)
+	.put(requireSignin, hasAuthorization, update)
+	.delete(requireSignin, hasAuthorization, remove);
 
-// @desc get user by id 
-// @route any route that has param of :userId
+// @desc 		gets the user by id and stores it in req.profile property.
+// @route 	any route that has param of :userId in it.
 router.param("userId", userById);
 
 export default router;

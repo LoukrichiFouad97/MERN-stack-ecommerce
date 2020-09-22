@@ -1,13 +1,14 @@
 import express from "express";
-import { userSignInValidator, validate } from "../validators/user_validator";
+import { signin, signout } from "../controllers/auth.controller";
 
 const router = express.Router();
 
-// Controllers
-import { signIn, signOut } from "../controllers/auth.controller";
+// @desc   signs in users
+// @route  /api/auth/signin
+router.post("/signin", signin);
 
-// Routes
-router.post("/signin", userSignInValidator(), validate, signIn);
-router.get("/signout", signOut);
+// @desc   signs out users
+// @route  /api/auth/signout
+router.get("/signout", signout);
 
 export default router;
