@@ -167,7 +167,7 @@ export const image = (req, res, next) => {
 	if (!req.product.image) {
 		return res.status(404).json({ error: "Product doesn't have image" });
 	}
-	req.set("Content-Type", req.product.image.contentType);
+	res.set("Content-Type", req.product.image.contentType);
 	res.send(req.product.image.data);
 	next();
 };
