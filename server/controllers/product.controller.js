@@ -30,7 +30,6 @@ export const create = (req, res) => {
 					.status(400)
 					.json({ error: "couldn't upload images more than 1MB in size" });
 
-			console.log("image", files.image);
 			product.image.data = fs.readFileSync(files.image.path);
 			product.image.contentType = files.image.type;
 		}
@@ -94,6 +93,83 @@ export const list = async (req, res) => {
 	} catch (error) {
 		res.status(400).json({ errors: error.message });
 	}
+};
+
+export const listRelated = async (req, res) => {
+	try {
+		const product = await Product.find({
+			_id: { $ne: req.product },
+			category: req.product.category,
+		})
+			.populate("category", "_id name")
+			.select("-image");
+		res.json(product);
+	} catch (error) {
+		res
+			.status(400)
+			.json({ msg: "There are no related products", error: error.message });
+	}
+};
+
+export const listProductCategories = async (req, res) => {
+	try {
+		const productCategoris = await Product.distinct("category", {});
+		res.json(productCategoris);
+	} catch (error) {
+		res
+			.status(404)
+			.json({ msg: "There are no product categories", error: error.message });
+	}
+};
+
+export const listBySearch = async (req, res) => {
+	let order = req.body.order ? req.body.order : "desc";
+	let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
+	let limit = req.body.limit ? parseInt(req.body.limit) : 100;
+	let skip = parseInt(req.body.skip);
+	let findArgs = {};
+
+	// console.log(order, sortBy, limit, skip, req.body.filters);
+	// console.log("findArgs", findArgs);
+
+	for (let key in req.body.filters) {
+		if (req.body.filters[key].length > 0) {
+			if (key === "price") {
+				// gte -  greater than price [0-10]
+				// lte - less than
+				findArgs[key] = {
+					$gte: req.body.filters[key][0],
+					$lte: req.body.filters[key][1],
+				};
+			} else {
+				findArgs[key] = req.body.filters[key];
+			}
+		}
+	}
+
+	try {
+		const products = await Product.find(findArgs)
+			.select("-photo")
+			.populate("category")
+			.sort([[sortBy, order]])
+			.skip(skip)
+			.limit(limit);
+
+		res.json({ size: products.length, products });
+	} catch (error) {
+		res.status(400).json({
+			error: "Products not found",
+		});
+	}
+};
+
+export const image = (req, res, next) => {
+	if (!req.product.image) {
+		return res.status(404).json({ error: "Product doesn't have image" });
+	}
+	req.set("Content-Type", req.product.image.contentType);
+	res.send(req.product.image.data);
+	next();
 };
 
 export const productById = async (req, res, next, id) => {

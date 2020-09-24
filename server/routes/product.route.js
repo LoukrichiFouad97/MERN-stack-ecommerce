@@ -3,10 +3,14 @@ import express from "express";
 import {
 	create,
 	list,
+	listRelated,
+	listProductCategories,
+	listBySearch,
 	productById,
 	read,
 	update,
 	remove,
+	image,
 } from "../controllers/product.controller";
 
 import { userById } from "../controllers/user.controller";
@@ -18,10 +22,35 @@ import {
 
 const router = express.Router();
 
-// @desc    list all products and creates a new one
+// @desc    Lists all available products
+// @route   /api/product/:userId
+// @access  Public
+router.get("/", list);
+
+// @desc    Creates a new product
 // @route   /api/product/:userId
 // @access  Private
-router.route("/:userId").get(list).post(requireSignin, create);
+router.post("/:userId", requireSignin, create);
+
+// @desc    Lists all available products
+// @route   /api/product/:userId
+// @access  Public
+router.get("/:productId/image", image);
+
+// @desc    Get all related products based on category
+// @route   /api/product/related/productId
+// @access  Public
+router.get("/related/:productId", listRelated);
+
+// @desc    Get all categories of products
+// @route   /api/product/categories
+// @access  Public
+router.get("/categories", listProductCategories);
+
+// @desc    Get all categories of products
+// @route   /api/product/categories
+// @access  Public
+router.post("/by/search", listBySearch);
 
 // @desc    list all products and creates a new one
 // @route   /api/product/:userId/:productId
