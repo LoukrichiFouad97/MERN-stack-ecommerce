@@ -9,8 +9,6 @@ import helmet from "helmet";
 import compress from "compression";
 
 import { config } from "./config";
-import { requireSignin, hasAuthorization } from "./controllers/auth.controller";
-
 const app = express();
 dotenv.config();
 
@@ -21,6 +19,7 @@ require("./utils/routes")(app);
 // Middlewares
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(helmet());
 app.use(compress());
@@ -47,9 +46,10 @@ app.get("/", (req, res) => {
 	res.send("Hello from protected route");
 });
 
-app.listen(config.PORT, (err) => {
+const port = config.PORT;
+app.listen(port, (err) => {
 	if (err) {
 		console.log(err);
 	}
-	console.log(`server started on ${config.PORT}`);
+	console.log(`server started on ${port}`);
 });

@@ -17,12 +17,12 @@ const router = express.Router();
 
 // @desc 		list all users and creates a new user
 // @route 	/api/users
-// @access	public
+// @access	Public
 router.route("/").get(list).post(create);
 
 // @desc 		access, update and delete users
 // @route 	/api/users/:userId
-// @access	protected
+// @access	Private
 router
 	.route("/:userId")
 	.get(requireSignin, read)

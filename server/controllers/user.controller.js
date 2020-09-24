@@ -37,7 +37,7 @@ export const remove = async (req, res) => {
 			deletedUser: _.pick(req.body, ["_id", "name", "email", "role"]),
 		});
 	} catch (err) {
-		return res.status(400).json({ error: getErrorMessage(err) });
+		res.status(400).json({ error: getErrorMessage(err) });
 	}
 };
 
@@ -48,14 +48,14 @@ export const userById = async (req, res, next, id) => {
 		req.profile = user;
 		next();
 	} catch (error) {
-		return res.status("400").json({ error: "Could not retrieve user" });
+		res.status("400").json({ error: "Could not retrieve user" });
 	}
 };
 
 export const list = async (req, res) => {
 	try {
 		const user = await User.find().select("_id name email role ");
-		res.json({ users: user });
+		res.json({ user });
 	} catch (error) {
 		res.status(401).json({ error: error.message });
 	}

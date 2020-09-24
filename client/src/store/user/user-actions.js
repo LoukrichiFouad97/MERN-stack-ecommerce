@@ -6,7 +6,7 @@ export const signUp = (user) => async (dispatch) => {
 	const { name, email, password } = user;
 	try {
 		dispatch({ type: userActionTypes.USER_SIGNUP_REQ });
-		const user = await axios.post("/api/users/register", {
+		const user = await axios.post("/api/users/", {
 			name,
 			email,
 			password,
